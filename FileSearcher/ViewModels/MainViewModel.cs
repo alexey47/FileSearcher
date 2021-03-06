@@ -36,6 +36,19 @@ namespace FileSearcher.ViewModels
 
     class MainViewModel : BaseViewModel
     {
+        public MainViewModel()
+        {
+            DirectoryContentCollection = new ObservableCollection<FileDescription>();
+            DirectoryPath = string.Empty;
+            FileMask = string.Empty;
+            ExcludeFileMask = string.Empty;
+            IsSearchAllDir = false;
+
+            _fileSearcher = new BackgroundWorker();
+            IsFileSearcherBusy = false;
+            _isFileSearcherAttached = false;
+        }
+
         public ObservableCollection<FileDescription> DirectoryContentCollection
         {
             set;
@@ -72,6 +85,7 @@ namespace FileSearcher.ViewModels
         }
 
         private BackgroundWorker _fileSearcher;
+        private bool _isFileSearcherAttached;
         private bool _isFileSearcherBusy;
         public bool IsFileSearcherBusy
         {
@@ -85,17 +99,6 @@ namespace FileSearcher.ViewModels
                 _isFileSearcherBusy = value;
                 OnPropertyChanged(nameof(IsFileSearcherBusy));
             }
-        }
-
-        public MainViewModel()
-        {
-            DirectoryContentCollection = new ObservableCollection<FileDescription>();
-            DirectoryPath = string.Empty;
-            FileMask = string.Empty;
-            ExcludeFileMask = string.Empty;
-            IsSearchAllDir = false;
-
-            _fileSearcher = new BackgroundWorker();
         }
 
         public ICommand OpenFileDialogCommand
@@ -160,10 +163,12 @@ namespace FileSearcher.ViewModels
         {
             get
             {
-                return new RelayCommand(() =>
+                if (!_isFileSearcherAttached)
                 {
                     _fileSearcher.DoWork += (sender, args) =>
                     {
+                        IsFileSearcherBusy = true;
+
                         //  Все файлы с указанными масками
                         string[] files = Array.Empty<string>();
                         var fileMask = FileMask.Split('\\', '/', ':', '"', '<', '>', '|');
@@ -236,12 +241,13 @@ namespace FileSearcher.ViewModels
                         IsFileSearcherBusy = false;
                     };
 
-                    if (!IsFileSearcherBusy)
-                    {
-                        IsFileSearcherBusy = true;
-                        _fileSearcher.RunWorkerAsync(this);
-                    }
-                });
+                    _isFileSearcherAttached = true;
+                }
+
+                return new RelayCommand(() =>
+                {
+                    _fileSearcher.RunWorkerAsync(this);
+                }, () => !IsFileSearcherBusy);
             }
         }
 
