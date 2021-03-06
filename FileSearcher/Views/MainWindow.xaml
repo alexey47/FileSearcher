@@ -59,9 +59,11 @@
                     Margin="10, 0, 0, 0" IsTabStop="True"
                     Command="{Binding SearchFilesAsyncCommand}"/>
             <Button Grid.Column="5"
-                    Content="▶" Width="20" 
+                    Width="20" Content="▶"
                     Margin="10, 0, 0, 0" IsTabStop="True"
-                    Command="{Binding SearchFilesAsyncCommand}"/>
+                    Command="{Binding SearchFilesAsyncCommand}">
+                
+            </Button>
 
         </Grid>
 
@@ -88,10 +90,27 @@
             </DataGrid>
 
             <ProgressBar IsIndeterminate="True" 
-                         Opacity="0.5" Visibility="Collapsed" 
-                         FlowDirection="LeftToRight" Orientation="Vertical"
-                         Background="#0AAA" BorderBrush="Transparent"/>
+                         Opacity="0.7"
+                         Orientation="Vertical"
+                         Background="#333" BorderBrush="Transparent" Foreground="{StaticResource Color3}">
+                <ProgressBar.Style>
+                    <Style TargetType="{x:Type ProgressBar}">
+                        <Style.Triggers>
 
+                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+                <ProgressBar.LayoutTransform>
+                    <RotateTransform Angle="180"/>
+                </ProgressBar.LayoutTransform>
+            </ProgressBar>
         </Grid>
     </DockPanel>
 </Window>

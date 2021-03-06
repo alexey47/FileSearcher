@@ -3,7 +3,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
                     xmlns:views="clr-namespace:FileSearcher.Views">
-
     <!--#region Colors-->
     <Style x:Key="OptionMarkFocusVisual">
         <Setter Property="Control.Template">
@@ -285,6 +284,9 @@
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
         <Setter Property="SelectionBrush" Value="{StaticResource Color3}"/>
     </Style>
+    <Style TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{StaticResource Color3}"/>
+    </Style>
 
     <!--#region DataGrid-->
     <Style x:Key="{ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle, TypeInTargetAssembly={x:Type DataGrid}}" TargetType="{x:Type Button}">
@@ -425,6 +427,5 @@
         <Setter Property="Height" Value="20"/>
     </Style>
     <!--#endregion-->
-
 
 </ResourceDictionary>
