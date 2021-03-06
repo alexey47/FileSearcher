@@ -1,0 +1,97 @@
+﻿<Window x:Class="FileSearcher.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FileSearcher"
+        xmlns:viewModels="clr-namespace:FileSearcher.ViewModels"
+        d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
+        mc:Ignorable="d"
+        Title="File Searcher" Icon="../Icons/FileSearcher.ico"
+        Height="450" Width="600" MinHeight="250" MinWidth="400"
+        FontFamily="Segoe UI">
+
+    <DockPanel Margin="20" LastChildFill="True">
+        <Grid DockPanel.Dock="Top"
+                  Margin="0, 0, 0, 10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0"
+                       Text="Directory: "/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DirectoryPath}"/>
+            <Button Grid.Row="0" Grid.Column="2"
+                    Content="..." Width="20"
+                    Margin="10, 0, 0, 0" IsTabStop="False"
+                    Command="{Binding OpenFileDialogCommand}"/>
+            <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ChB"
+                      HorizontalAlignment="Left"
+                      Margin="0, 5, 0, 0"
+                      Content="Include sub-derictories" IsTabStop="False"
+                      IsChecked="{Binding IsSearchAllDir}"/>
+        </Grid>
+        <Grid DockPanel.Dock="Top"
+              Margin="0, 0, 0, 10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="File Mask: "/>
+            <TextBox Grid.Column="1"
+                     Text="{Binding FileMask}"/>
+            <TextBlock Grid.Column="3" Text="Exclude Mask: "/>
+            <TextBox Grid.Column="4"
+                     Text="{Binding ExcludeFileMask}"/>
+            <Button Grid.Column="5"
+                    Content="▶" Width="20" 
+                    Margin="10, 0, 0, 0" IsTabStop="True"
+                    Command="{Binding SearchFilesAsyncCommand}"/>
+            <Button Grid.Column="5"
+                    Content="▶" Width="20" 
+                    Margin="10, 0, 0, 0" IsTabStop="True"
+                    Command="{Binding SearchFilesAsyncCommand}"/>
+
+        </Grid>
+
+        <ProgressBar DockPanel.Dock="Bottom" 
+                     Visibility="Collapsed" IsIndeterminate="True"
+                     Margin="0, 0, 0, 0" Height="20" 
+                     Orientation="Horizontal"/>
+
+        <Grid DockPanel.Dock="Top">
+            <DataGrid ItemsSource="{Binding DirectoryContentCollection}" 
+                      CanUserResizeColumns="True" CanUserResizeRows="True"
+                      AutoGenerateColumns="False" GridLinesVisibility="None" 
+                      IsReadOnly="True" HeadersVisibility="Column" 
+                      SelectionMode="Extended" SelectionUnit="FullRow" 
+                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                      IsTabStop="False" FrozenColumnCount="0" IsHitTestVisible="True"
+                      ScrollViewer.CanContentScroll="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
+                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
+                    <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="80"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="140"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <ProgressBar IsIndeterminate="True" 
+                         Opacity="0.5" Visibility="Collapsed" 
+                         FlowDirection="LeftToRight" Orientation="Vertical"
+                         Background="#0AAA" BorderBrush="Transparent"/>
+
+        </Grid>
+    </DockPanel>
+</Window>
