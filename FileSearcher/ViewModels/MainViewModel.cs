@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Windows;
 using System.Windows.Input;
 using Ookii.Dialogs.Wpf;
 
-// TODO: BackgroundWorker, TextReader
+// TODO: TextReader
+
 
 namespace FileSearcher.ViewModels
 {
@@ -44,7 +42,11 @@ namespace FileSearcher.ViewModels
             ExcludeFileMask = string.Empty;
             IsSearchAllDir = false;
 
-            _fileSearcher = new BackgroundWorker();
+            _fileSearcher = new BackgroundWorker
+            {
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
+            };
             IsFileSearcherBusy = false;
             _isFileSearcherAttached = false;
         }
@@ -100,6 +102,20 @@ namespace FileSearcher.ViewModels
                 OnPropertyChanged(nameof(IsFileSearcherBusy));
             }
         }
+        private int _progress;
+        public int Progress
+        {
+            get => _progress;
+            set
+            {
+                if (_progress == value)
+                {
+                    return;
+                }
+                _progress = value;
+                OnPropertyChanged(nameof(Progress));
+            }
+        }
 
         public ICommand OpenFileDialogCommand
         {
@@ -112,53 +128,6 @@ namespace FileSearcher.ViewModels
                 }
             });
         }
-        public ICommand SearchFilesSyncCommand
-        {
-            get => new RelayCommand(() =>
-            {
-                try
-                {
-                    //  Все файлы с указанными масками
-                    string[] files = Array.Empty<string>();
-                    var fileMask = FileMask.Split('\\', '/', ':', '"', '<', '>', '|');
-                    fileMask = fileMask.Where(mask => mask != string.Empty).ToArray();
-                    foreach (var mask in fileMask)
-                    {
-                        files = files.Concat(Directory.GetFiles(DirectoryPath, mask, (IsSearchAllDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))).ToArray();
-                    }
-
-                    //  Исключить файлы
-                    string[] excludedFiles = Array.Empty<string>();
-                    if (ExcludeFileMask != string.Empty)
-                    {
-                        var excludedFileMask = ExcludeFileMask.Split('\\', '/', ':', '"', '<', '>', '|');
-                        excludedFileMask = excludedFileMask.Where(mask => mask != string.Empty).ToArray();
-                        foreach (var mask in excludedFileMask)
-                        {
-                            excludedFiles = excludedFiles.Concat(Directory.GetFiles(DirectoryPath, mask, (IsSearchAllDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))).ToArray();
-                        }
-                    }
-
-                    //  Обновление коллекции
-                    DirectoryContentCollection.Clear();
-                    foreach (var file in files.Except(excludedFiles))
-                    {
-                        var fileInfo = new FileInfo(file);
-                        DirectoryContentCollection.Add(new FileDescription()
-                        {
-                            Name = fileInfo.Name,
-                            Path = file,
-                            Size = fileInfo.Length,
-                            CreatedTime = File.GetCreationTime(file)
-                        });
-                    }
-                }
-                catch (Exception e)
-                {
-                    DirectoryPath = e.Message;
-                }
-            });
-        }
         public ICommand SearchFilesAsyncCommand
         {
             get
@@ -167,12 +136,9 @@ namespace FileSearcher.ViewModels
                 {
                     _fileSearcher.DoWork += (sender, args) =>
                     {
-                        IsFileSearcherBusy = true;
-
                         //  Все файлы с указанными масками
-                        string[] files = Array.Empty<string>();
-                        var fileMask = FileMask.Split('\\', '/', ':', '"', '<', '>', '|');
-                        fileMask = fileMask.Where(mask => mask != string.Empty).ToArray();
+                        var files = Array.Empty<string>();
+                        var fileMask = FileMask.Split('\\', '/', ':', '"', '<', '>', '|').Where(mask => mask != string.Empty).ToArray();
                         foreach (var mask in fileMask)
                         {
                             if (_fileSearcher.CancellationPending)
@@ -183,12 +149,11 @@ namespace FileSearcher.ViewModels
                             files = files.Concat(Directory.GetFiles(DirectoryPath, mask, (IsSearchAllDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))).ToArray();
                         }
 
-                        //  Исключить файлы
-                        string[] excludedFiles = Array.Empty<string>();
+                        //  Исключаемые файлы с указанными масками
+                        var excludedFiles = Array.Empty<string>();
                         if (ExcludeFileMask != string.Empty)
                         {
-                            var excludedFileMask = ExcludeFileMask.Split('\\', '/', ':', '"', '<', '>', '|');
-                            excludedFileMask = excludedFileMask.Where(mask => mask != string.Empty).ToArray();
+                            var excludedFileMask = ExcludeFileMask.Split('\\', '/', ':', '"', '<', '>', '|').Where(mask => mask != string.Empty).ToArray();
                             foreach (var mask in excludedFileMask)
                             {
                                 if (_fileSearcher.CancellationPending)
@@ -201,25 +166,37 @@ namespace FileSearcher.ViewModels
                         }
 
                         //  Добавление в коллекцию
-                        ObservableCollection<FileDescription> collection = new ObservableCollection<FileDescription>();
+                        var iteration = 0;
+                        var size = files.Except(excludedFiles).Count();
                         foreach (var file in files.Except(excludedFiles))
                         {
+                            var progress = 100 - (iteration * 100 / size);
+                            
                             if (_fileSearcher.CancellationPending)
                             {
                                 args.Cancel = true;
                                 break;
                             }
                             var fileInfo = new FileInfo(file);
-                            collection.Add(new FileDescription()
+                            _fileSearcher.ReportProgress(progress, new FileDescription
                             {
                                 Name = fileInfo.Name,
                                 Path = file,
                                 Size = fileInfo.Length,
                                 CreatedTime = File.GetCreationTime(file)
                             });
-                        }
 
-                        args.Result = collection;
+                            if (progress % 10 == 0)
+                            {
+                                Thread.Sleep(1);
+                            }
+                            iteration++;
+                        }
+                    };
+                    _fileSearcher.ProgressChanged += (sender, args) =>
+                    {
+                        DirectoryContentCollection.Insert(0, args.UserState as FileDescription);
+                        Progress = args.ProgressPercentage;
                     };
                     _fileSearcher.RunWorkerCompleted += (sender, args) =>
                     {
@@ -229,16 +206,15 @@ namespace FileSearcher.ViewModels
                         }
                         else if (args.Cancelled)
                         {
-                            DirectoryPath = "Canceled!";
+                            
                         }
                         else
                         {
-                            DirectoryContentCollection.Clear();
-                            DirectoryContentCollection = args.Result as ObservableCollection<FileDescription>;
-                            OnPropertyChanged(nameof(DirectoryContentCollection));
+                            
                         }
 
                         IsFileSearcherBusy = false;
+                        Progress = 100;
                     };
 
                     _isFileSearcherAttached = true;
@@ -246,8 +222,20 @@ namespace FileSearcher.ViewModels
 
                 return new RelayCommand(() =>
                 {
+                    DirectoryContentCollection.Clear();
+                    IsFileSearcherBusy = true;
                     _fileSearcher.RunWorkerAsync(this);
-                }, () => !IsFileSearcherBusy);
+                });
+            }
+        }
+        public ICommand SearchFilesAsyncCancelCommand
+        {
+            get
+            {
+                return new RelayCommand(() =>
+                {
+                    _fileSearcher.CancelAsync();
+                });
             }
         }
 
