@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FileSearcher"
         xmlns:viewModels="clr-namespace:FileSearcher.ViewModels"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         mc:Ignorable="d"
@@ -12,8 +11,8 @@
         FontFamily="Segoe UI">
 
     <DockPanel Margin="20" LastChildFill="True">
-        <Grid DockPanel.Dock="Top"
-                  Margin="0, 0, 0, 10">
+        <Grid DockPanel.Dock="Top" 
+              Margin="0, 0, 0, 10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -25,13 +24,14 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0"
-                       Text="Directory: "/>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DirectoryPath}"/>
+                       Text="Directory: " Width="60"/>
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding DirectoryPath}"/>
             <Button Grid.Row="0" Grid.Column="2"
                     Content="..." Width="20"
                     Margin="10, 0, 0, 0" IsTabStop="False"
                     Command="{Binding OpenFileDialogCommand}"/>
-            <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ChB"
+            <CheckBox Grid.Row="1" Grid.Column="1"
                       HorizontalAlignment="Left"
                       Margin="0, 5, 0, 0"
                       Content="Include sub-derictories" IsTabStop="False"
@@ -48,10 +48,12 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="File Mask: "/>
+            <TextBlock Grid.Column="0" 
+                       Text="File Mask: " Width="60"/>
             <TextBox Grid.Column="1"
                      Text="{Binding FileMask}"/>
-            <TextBlock Grid.Column="3" Text="Exclude Mask: "/>
+            <TextBlock Grid.Column="3" 
+                       Text="Exclude Mask: "/>
             <TextBox Grid.Column="4"
                      Text="{Binding ExcludeFileMask}"/>
             <Button Grid.Column="5"
@@ -59,20 +61,23 @@
                     Margin="10, 0, 0, 0" IsTabStop="True"
                     Command="{Binding SearchFilesAsyncCommand}"/>
             <Button Grid.Column="5"
-                    Width="20" Content="▶"
+                    Content="■" Width="20" 
                     Margin="10, 0, 0, 0" IsTabStop="True"
-                    Command="{Binding SearchFilesAsyncCommand}">
-                
+                    Command="{Binding SearchFilesAsyncCancelCommand}">
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Visibility" Value="Hidden"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
             </Button>
-
         </Grid>
-
-        <ProgressBar DockPanel.Dock="Bottom" 
-                     Visibility="Collapsed" IsIndeterminate="True"
-                     Margin="0, 0, 0, 0" Height="20" 
-                     Orientation="Horizontal"/>
-
         <Grid DockPanel.Dock="Top">
+
             <DataGrid ItemsSource="{Binding DirectoryContentCollection}" 
                       CanUserResizeColumns="True" CanUserResizeRows="True"
                       AutoGenerateColumns="False" GridLinesVisibility="None" 
@@ -81,15 +86,15 @@
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
                       IsTabStop="False" FrozenColumnCount="0" IsHitTestVisible="True"
                       ScrollViewer.CanContentScroll="True">
+                
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
                     <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
-                    <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="80"/>
-                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="140"/>
+                    <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="0.5*"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="1.1*"/>
                 </DataGrid.Columns>
             </DataGrid>
-
-            <ProgressBar IsIndeterminate="True" 
+            <ProgressBar IsIndeterminate="False" Value="{Binding Progress}"
                          Opacity="0.7"
                          Orientation="Vertical"
                          Background="#333" BorderBrush="Transparent" Foreground="{StaticResource Color3}">
@@ -107,9 +112,6 @@
                         </Style.Triggers>
                     </Style>
                 </ProgressBar.Style>
-                <ProgressBar.LayoutTransform>
-                    <RotateTransform Angle="180"/>
-                </ProgressBar.LayoutTransform>
             </ProgressBar>
         </Grid>
     </DockPanel>

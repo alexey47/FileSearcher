@@ -20,6 +20,7 @@
     <SolidColorBrush x:Key="Color3" Color="#007acc"/>
     <SolidColorBrush x:Key="Color4" Color="#333337"/>
     <SolidColorBrush x:Key="Color5" Color="#3f3f46"/>
+    <SolidColorBrush x:Key="Color6" Color="#1e1e1e"/>
 
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#007acc"/>
     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#007acc"/>
@@ -284,9 +285,6 @@
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
         <Setter Property="SelectionBrush" Value="{StaticResource Color3}"/>
     </Style>
-    <Style TargetType="ProgressBar">
-        <Setter Property="Foreground" Value="{StaticResource Color3}"/>
-    </Style>
 
     <!--#region DataGrid-->
     <Style x:Key="{ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle, TypeInTargetAssembly={x:Type DataGrid}}" TargetType="{x:Type Button}">
@@ -314,7 +312,7 @@
     </Style>
     <Style TargetType="{x:Type DataGrid}">
         <Setter Property="RowBackground" Value="Transparent"/>
-        <Setter Property="Background" Value="{StaticResource Color2}"/>
+        <Setter Property="Background" Value="{StaticResource Color6}"/>
         <Setter Property="Foreground" Value="{StaticResource Color1}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrushColor}"/>
         <Setter Property="BorderThickness" Value="1"/>
