@@ -285,7 +285,7 @@ namespace FileSearcher.ViewModels
             get;
             set;
         }
-        
+
         public ICommand ReplaceTextAsyncCommand
         {
             get
@@ -317,12 +317,6 @@ namespace FileSearcher.ViewModels
                             string line;
                             while ((line = reader.ReadLine()) != null)
                             {
-                                if (_textReplacer.CancellationPending)
-                                {
-                                    args.Cancel = true;
-                                    break;
-                                }
-
                                 writer.WriteLine(line.Replace(FindText, ReplaceText));
                             }
 
@@ -334,10 +328,6 @@ namespace FileSearcher.ViewModels
 
                             var progress = 100 - (iteration * 100 / size);
                             _textReplacer.ReportProgress(progress);
-                            if (progress % 10 == 0)
-                            {
-                                Thread.Sleep(1);
-                            }
                             iteration++;
                         }
                     };
@@ -365,7 +355,7 @@ namespace FileSearcher.ViewModels
                     {
                         IsTextReplacerBusy = true;
                         _textReplacer.RunWorkerAsync(this);
-                    }   
+                    }
                 });
             }
         }
