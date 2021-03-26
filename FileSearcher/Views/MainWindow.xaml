@@ -34,7 +34,7 @@
             <CheckBox Grid.Row="1" Grid.Column="1"
                       HorizontalAlignment="Left"
                       Margin="0, 5, 0, 0"
-                      Content="Include sub-derictories" IsTabStop="False"
+                      Content="Include sub-directories" IsTabStop="False"
                       IsChecked="{Binding IsSearchAllDir}"/>
         </Grid>
         <Grid DockPanel.Dock="Top"
@@ -47,7 +47,6 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
             <TextBlock Grid.Column="0" 
                        Text="File Mask: " Width="60"/>
             <TextBox Grid.Column="1"
@@ -57,62 +56,157 @@
             <TextBox Grid.Column="4"
                      Text="{Binding ExcludeFileMask}"/>
             <Button Grid.Column="5"
-                    Content="▶" Width="20" 
-                    Margin="10, 0, 0, 0" IsTabStop="True"
-                    Command="{Binding SearchFilesAsyncCommand}"/>
-            <Button Grid.Column="5"
-                    Content="■" Width="20" 
-                    Margin="10, 0, 0, 0" IsTabStop="True"
-                    Command="{Binding SearchFilesAsyncCancelCommand}">
+                    Width="20" 
+                    Margin="10, 0, 0, 0" IsTabStop="True">
                 <Button.Style>
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
-                        <Setter Property="Visibility" Value="Hidden"/>
                         <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
+                                <Setter Property="Content" Value="▶"/>
+                                <Setter Property="Command" Value="{Binding SearchFilesAsyncCommand}"/>
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
+                                <Setter Property="Content" Value="■"/>
+                                <Setter Property="Command" Value="{Binding SearchFilesAsyncCancelCommand}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Button.Style>
             </Button>
         </Grid>
-        <Grid DockPanel.Dock="Top">
+        <TabControl DockPanel.Dock="Top" 
+                    TabStripPlacement="Left" 
+                    Padding="0" Margin="16, 0, 0, 0"
+                    BorderThickness="0">
+            <TabItem>
+                <TabItem.Header>
+                    <Image Source="../Icons/search.png" Margin="5" ToolTip="Search"/>
+                </TabItem.Header>
+                <Grid DockPanel.Dock="Top">
 
-            <DataGrid ItemsSource="{Binding DirectoryContentCollection}" 
-                      CanUserResizeColumns="True" CanUserResizeRows="True"
-                      AutoGenerateColumns="False" GridLinesVisibility="None" 
-                      IsReadOnly="True" HeadersVisibility="Column" 
-                      SelectionMode="Extended" SelectionUnit="FullRow" 
-                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
-                      IsTabStop="False" FrozenColumnCount="0" IsHitTestVisible="True"
-                      ScrollViewer.CanContentScroll="True">
-                
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
-                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
-                    <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="0.5*"/>
-                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="1.1*"/>
-                </DataGrid.Columns>
-            </DataGrid>
-            <ProgressBar IsIndeterminate="False" Value="{Binding Progress}"
-                         Opacity="0.7"
-                         Orientation="Vertical"
-                         Background="#333" BorderBrush="Transparent" Foreground="{StaticResource Color3}">
-                <ProgressBar.Style>
-                    <Style TargetType="{x:Type ProgressBar}">
-                        <Style.Triggers>
+                    <DataGrid ItemsSource="{Binding DirectoryContentCollection}" 
+                              CanUserResizeColumns="True" CanUserResizeRows="True"
+                              AutoGenerateColumns="False" GridLinesVisibility="None" 
+                              IsReadOnly="True" HeadersVisibility="Column" 
+                              SelectionMode="Single" SelectionUnit="FullRow" 
+                              HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                              IsTabStop="False" FrozenColumnCount="0" IsHitTestVisible="True"
+                              ScrollViewer.CanContentScroll="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
+                            <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="0.5*"/>
+                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="1.1*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <ProgressBar IsIndeterminate="False" Value="{Binding SearchProgress}"
+                                 Opacity="0.7"
+                                 Orientation="Vertical"
+                                 Background="#333" BorderBrush="Transparent" Foreground="{StaticResource Color3}">
+                        <ProgressBar.Style>
+                            <Style TargetType="{x:Type ProgressBar}">
+                                <Style.Triggers>
 
-                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
 
-                        </Style.Triggers>
-                    </Style>
-                </ProgressBar.Style>
-            </ProgressBar>
-        </Grid>
+                                </Style.Triggers>
+                            </Style>
+                        </ProgressBar.Style>
+                    </ProgressBar>
+                </Grid>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <Image Source="../Icons/replace.png" Margin="5" ToolTip="Find'n'Replace"/>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <TextBox Grid.Row="0" 
+                                 TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" SnapsToDevicePixels="True"
+                                 Text="{Binding FindText}"/>
+                        <Button Grid.Row="1" 
+                                SnapsToDevicePixels="True" Margin="0" HorizontalContentAlignment="Stretch">
+                            <Button.Style>
+                                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTextReplacerBusy}" Value="False">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <Image Source="../Icons/arrow_down.png"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="Command" Value="{Binding ReplaceTextAsyncCommand}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsTextReplacerBusy}" Value="True">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <Grid>
+                                                        <ProgressBar IsIndeterminate="False" Value="{Binding ReplaceProgress}"
+                                                                     BorderThickness="0" BorderBrush="Transparent" Margin="-1"
+                                                                     Background="#0000" Foreground="{StaticResource Color3}" Opacity="1" 
+                                                                     FlowDirection="RightToLeft"/>
+                                                        <Image Source="../Icons/replace.png"/>
+                                                    </Grid>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="Command" Value="{Binding ReplaceTextAsyncCancelCommand}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <TextBox Grid.Row="2" 
+                                 TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" SnapsToDevicePixels="True"
+                                 Text="{Binding ReplaceText}"/>
+                    </Grid>
+                    <DataGrid Grid.Column="1"
+                              ItemsSource="{Binding DirectoryContentCollection}" 
+                              CanUserResizeColumns="True" CanUserResizeRows="True"
+                              AutoGenerateColumns="False" GridLinesVisibility="None" 
+                              IsReadOnly="True" HeadersVisibility="Column" 
+                              SelectionMode="Single" SelectionUnit="FullRow" 
+                              HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                              IsTabStop="False" FrozenColumnCount="0" IsHitTestVisible="True"
+                              ScrollViewer.CanContentScroll="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <ProgressBar Grid.Column="1" 
+                                 IsIndeterminate="False" Value="{Binding SearchProgress}"
+                                 Opacity="0.7"
+                                 Orientation="Vertical"
+                                 Background="#333" BorderBrush="Transparent" Foreground="{StaticResource Color3}">
+                        <ProgressBar.Style>
+                            <Style TargetType="{x:Type ProgressBar}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ProgressBar.Style>
+                    </ProgressBar>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>
