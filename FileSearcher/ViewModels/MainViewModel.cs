@@ -1,14 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
+using Microsoft.VisualBasic;
 using Ookii.Dialogs.Wpf;
-
-// TODO: TextReader
-
 
 namespace FileSearcher.ViewModels
 {
@@ -49,6 +48,18 @@ namespace FileSearcher.ViewModels
             };
             IsFileSearcherBusy = false;
             _isFileSearcherAttached = false;
+            SearchProgress = 0;
+
+            _textReplacer = new BackgroundWorker
+            {
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
+            };
+            IsTextReplacerBusy = false;
+            _isTextReplacerAttached = false;
+            FindText = string.Empty;
+            ReplaceText = string.Empty;
+            ReplaceProgress = 0;
         }
 
         public ObservableCollection<FileDescription> DirectoryContentCollection
@@ -85,7 +96,19 @@ namespace FileSearcher.ViewModels
             get;
             set;
         }
+        public ICommand OpenFileDialogCommand
+        {
+            get => new RelayCommand(() =>
+            {
+                VistaFolderBrowserDialog dlg = new VistaFolderBrowserDialog();
+                if (dlg.ShowDialog() == true)
+                {
+                    DirectoryPath = dlg.SelectedPath;
+                }
+            });
+        }
 
+        #region Searcher
         private BackgroundWorker _fileSearcher;
         private bool _isFileSearcherAttached;
         private bool _isFileSearcherBusy;
@@ -102,32 +125,21 @@ namespace FileSearcher.ViewModels
                 OnPropertyChanged(nameof(IsFileSearcherBusy));
             }
         }
-        private int _progress;
-        public int Progress
+        private int _searchProgress;
+        public int SearchProgress
         {
-            get => _progress;
+            get => _searchProgress;
             set
             {
-                if (_progress == value)
+                if (_searchProgress == value)
                 {
                     return;
                 }
-                _progress = value;
-                OnPropertyChanged(nameof(Progress));
+                _searchProgress = value;
+                OnPropertyChanged(nameof(SearchProgress));
             }
         }
 
-        public ICommand OpenFileDialogCommand
-        {
-            get => new RelayCommand(() =>
-            {
-                VistaFolderBrowserDialog dlg = new VistaFolderBrowserDialog();
-                if (dlg.ShowDialog() == true)
-                {
-                    DirectoryPath = dlg.SelectedPath;
-                }
-            });
-        }
         public ICommand SearchFilesAsyncCommand
         {
             get
@@ -171,7 +183,7 @@ namespace FileSearcher.ViewModels
                         foreach (var file in files.Except(excludedFiles))
                         {
                             var progress = 100 - (iteration * 100 / size);
-                            
+
                             if (_fileSearcher.CancellationPending)
                             {
                                 args.Cancel = true;
@@ -196,7 +208,7 @@ namespace FileSearcher.ViewModels
                     _fileSearcher.ProgressChanged += (sender, args) =>
                     {
                         DirectoryContentCollection.Insert(0, args.UserState as FileDescription);
-                        Progress = args.ProgressPercentage;
+                        SearchProgress = args.ProgressPercentage;
                     };
                     _fileSearcher.RunWorkerCompleted += (sender, args) =>
                     {
@@ -204,17 +216,9 @@ namespace FileSearcher.ViewModels
                         {
                             DirectoryPath = args.Error.Message;
                         }
-                        else if (args.Cancelled)
-                        {
-                            
-                        }
-                        else
-                        {
-                            
-                        }
 
+                        SearchProgress = 100;
                         IsFileSearcherBusy = false;
-                        Progress = 100;
                     };
 
                     _isFileSearcherAttached = true;
@@ -238,6 +242,144 @@ namespace FileSearcher.ViewModels
                 });
             }
         }
+        #endregion
+
+        #region Replacer
+        private BackgroundWorker _textReplacer;
+        private bool _isTextReplacerAttached;
+        private bool _isTextReplacerBusy;
+        public bool IsTextReplacerBusy
+        {
+            get => _isTextReplacerBusy;
+            set
+            {
+                if (_isTextReplacerBusy == value)
+                {
+                    return;
+                }
+                _isTextReplacerBusy = value;
+                OnPropertyChanged(nameof(IsTextReplacerBusy));
+            }
+        }
+        private int _replaceProgress;
+        public int ReplaceProgress
+        {
+            get => _replaceProgress;
+            set
+            {
+                if (_replaceProgress == value)
+                {
+                    return;
+                }
+                _replaceProgress = value;
+                OnPropertyChanged(nameof(ReplaceProgress));
+            }
+        }
+        public string FindText
+        {
+            get;
+            set;
+        }
+        public string ReplaceText
+        {
+            get;
+            set;
+        }
+        
+        public ICommand ReplaceTextAsyncCommand
+        {
+            get
+            {
+                if (!_isTextReplacerAttached)
+                {
+                    _textReplacer.DoWork += (sender, args) =>
+                    {
+                        List<FileDescription> files = new List<FileDescription>(DirectoryContentCollection);
+
+                        int iteration = 0;
+                        int size = files.Count;
+                        foreach (var fileDescription in files)
+                        {
+                            if (_textReplacer.CancellationPending)
+                            {
+                                args.Cancel = true;
+                                break;
+                            }
+
+                            if (FindText == string.Empty || ReplaceText == string.Empty)
+                            {
+                                return;
+                            }
+
+                            using StreamReader reader = new StreamReader(fileDescription.Path);
+                            using StreamWriter writer = new StreamWriter(fileDescription.Path + ".tmp");
+
+                            string line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                if (_textReplacer.CancellationPending)
+                                {
+                                    args.Cancel = true;
+                                    break;
+                                }
+
+                                writer.WriteLine(line.Replace(FindText, ReplaceText));
+                            }
+
+                            writer.Close();
+                            reader.Close();
+
+                            File.Delete(fileDescription.Path);
+                            FileSystem.Rename(fileDescription.Path + ".tmp", fileDescription.Path);
+
+                            var progress = 100 - (iteration * 100 / size);
+                            _textReplacer.ReportProgress(progress);
+                            if (progress % 10 == 0)
+                            {
+                                Thread.Sleep(1);
+                            }
+                            iteration++;
+                        }
+                    };
+                    _textReplacer.ProgressChanged += (sender, args) =>
+                    {
+                        ReplaceProgress = args.ProgressPercentage;
+                    };
+                    _textReplacer.RunWorkerCompleted += (sender, args) =>
+                    {
+                        if (args.Error != null)
+                        {
+                            DirectoryPath = args.Error.Message;
+                        }
+
+                        ReplaceProgress = 100;
+                        IsTextReplacerBusy = false;
+                    };
+
+                    _isTextReplacerAttached = true;
+                }
+
+                return new RelayCommand(() =>
+                {
+                    if (!IsFileSearcherBusy)
+                    {
+                        IsTextReplacerBusy = true;
+                        _textReplacer.RunWorkerAsync(this);
+                    }   
+                });
+            }
+        }
+        public ICommand ReplaceTextAsyncCancelCommand
+        {
+            get
+            {
+                return new RelayCommand(() =>
+                {
+                    _textReplacer.CancelAsync();
+                });
+            }
+        }
+        #endregion
 
     }
 }

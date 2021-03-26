@@ -8,13 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icons\arrow_down.png" />
     <None Remove="Icons\FileSearcher.ico" />
+    <None Remove="Icons\replace.png" />
+    <None Remove="Icons\search.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Icons\FileSearcher.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Icons\arrow_down.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Icons\replace.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Icons\search.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
