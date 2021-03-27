@@ -294,21 +294,20 @@ namespace FileSearcher.ViewModels
                 {
                     _textReplacer.DoWork += (sender, args) =>
                     {
+                        if (FindText == string.Empty || ReplaceText == string.Empty)
+                        {
+                            return;
+                        }
+
                         List<FileDescription> files = new List<FileDescription>(DirectoryContentCollection);
 
                         int iteration = 0;
-                        int size = files.Count;
                         foreach (var fileDescription in files)
                         {
                             if (_textReplacer.CancellationPending)
                             {
                                 args.Cancel = true;
                                 break;
-                            }
-
-                            if (FindText == string.Empty || ReplaceText == string.Empty)
-                            {
-                                return;
                             }
 
                             using StreamReader reader = new StreamReader(fileDescription.Path);
@@ -326,7 +325,7 @@ namespace FileSearcher.ViewModels
                             File.Delete(fileDescription.Path);
                             FileSystem.Rename(fileDescription.Path + ".tmp", fileDescription.Path);
 
-                            var progress = 100 - (iteration * 100 / size);
+                            var progress = 100 - (iteration * 100 / files.Count);
                             _textReplacer.ReportProgress(progress);
                             iteration++;
                         }
