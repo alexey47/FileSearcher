@@ -83,8 +83,7 @@
                     <Image Source="../Icons/search.png" Margin="5" ToolTip="Search"/>
                 </TabItem.Header>
                 <Grid DockPanel.Dock="Top">
-
-                    <DataGrid ItemsSource="{Binding DirectoryContentCollection}" 
+                    <DataGrid ItemsSource="{Binding DirectoryContentCollection}"
                               CanUserResizeColumns="True" CanUserResizeRows="True"
                               AutoGenerateColumns="False" GridLinesVisibility="None" 
                               IsReadOnly="True" HeadersVisibility="Column" 
@@ -98,6 +97,11 @@
                             <DataGridTextColumn Header="Size (B)" Binding="{Binding Size}" Width="0.5*"/>
                             <DataGridTextColumn Header="Created" Binding="{Binding CreatedTime}" Width="1.1*"/>
                         </DataGrid.Columns>
+                        <DataGrid.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick"
+                                          Command="{Binding OpenFileFolderCommand}"
+                                          CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=SelectedItem}"/>
+                        </DataGrid.InputBindings>
                     </DataGrid>
                     <ProgressBar IsIndeterminate="False" Value="{Binding SearchProgress}"
                                  Opacity="0.7"
@@ -186,6 +190,11 @@
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*"/>
                             <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*"/>
                         </DataGrid.Columns>
+                        <DataGrid.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick"
+                                          Command="{Binding OpenTextFileCommand}"
+                                          CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=SelectedItem}"/>
+                        </DataGrid.InputBindings>
                     </DataGrid>
                     <ProgressBar Grid.Column="1" 
                                  IsIndeterminate="False" Value="{Binding SearchProgress}"

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -139,7 +140,6 @@ namespace FileSearcher.ViewModels
                 OnPropertyChanged(nameof(SearchProgress));
             }
         }
-
         public ICommand SearchFilesAsyncCommand
         {
             get
@@ -242,6 +242,13 @@ namespace FileSearcher.ViewModels
                 });
             }
         }
+        public ICommand OpenFileFolderCommand
+        {
+            get => new RelayCommand<FileDescription>((file) =>
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $" /select, {file.Path}"));
+            });
+        }
         #endregion
 
         #region Replacer
@@ -285,7 +292,6 @@ namespace FileSearcher.ViewModels
             get;
             set;
         }
-
         public ICommand ReplaceTextAsyncCommand
         {
             get
@@ -367,6 +373,13 @@ namespace FileSearcher.ViewModels
                     _textReplacer.CancelAsync();
                 });
             }
+        }
+        public ICommand OpenTextFileCommand
+        {
+            get => new RelayCommand<FileDescription>((file) =>
+            {
+                Process.Start(new ProcessStartInfo("notepad.exe", file.Path));
+            });
         }
         #endregion
 
