@@ -102,6 +102,11 @@
                                           Command="{Binding OpenFileFolderCommand}"
                                           CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=SelectedItem}"/>
                         </DataGrid.InputBindings>
+                        <DataGrid.ItemContainerStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="ToolTip" Value="{Binding Path}"/>
+                            </Style>
+                        </DataGrid.ItemContainerStyle>
                     </DataGrid>
                     <ProgressBar IsIndeterminate="False" Value="{Binding SearchProgress}"
                                  Opacity="0.7"
@@ -110,14 +115,12 @@
                         <ProgressBar.Style>
                             <Style TargetType="{x:Type ProgressBar}">
                                 <Style.Triggers>
-
                                     <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="False">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding IsFileSearcherBusy}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
-
                                 </Style.Triggers>
                             </Style>
                         </ProgressBar.Style>
@@ -141,7 +144,8 @@
                         </Grid.RowDefinitions>
                         <TextBox Grid.Row="0" 
                                  TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" SnapsToDevicePixels="True"
-                                 Text="{Binding FindText}"/>
+                                 Text="{Binding FindText}"
+                                 ToolTip="Find"/>
                         <Button Grid.Row="1" 
                                 SnapsToDevicePixels="True" Margin="0" HorizontalContentAlignment="Stretch">
                             <Button.Style>
@@ -175,7 +179,8 @@
                         </Button>
                         <TextBox Grid.Row="2" 
                                  TextWrapping="Wrap" AcceptsReturn="True" AcceptsTab="True" SnapsToDevicePixels="True"
-                                 Text="{Binding ReplaceText}"/>
+                                 Text="{Binding ReplaceText}"
+                                 ToolTip="Replace"/>
                     </Grid>
                     <DataGrid Grid.Column="1"
                               ItemsSource="{Binding DirectoryContentCollection}" 
@@ -195,6 +200,11 @@
                                           Command="{Binding OpenTextFileCommand}"
                                           CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=SelectedItem}"/>
                         </DataGrid.InputBindings>
+                        <DataGrid.ItemContainerStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="ToolTip" Value="{Binding Path}"/>
+                            </Style>
+                        </DataGrid.ItemContainerStyle>
                     </DataGrid>
                     <ProgressBar Grid.Column="1" 
                                  IsIndeterminate="False" Value="{Binding SearchProgress}"
