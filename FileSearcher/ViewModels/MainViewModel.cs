@@ -7,31 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
+using FileSearcher.Models;
 using Microsoft.VisualBasic;
 using Ookii.Dialogs.Wpf;
 
 namespace FileSearcher.ViewModels
 {
-    class FileDescription
-    {
-        public string Name
-        {
-            get; set;
-        }
-        public string Path
-        {
-            get; set;
-        }
-        public long Size
-        {
-            get; set;
-        }
-        public DateTime CreatedTime
-        {
-            get; set;
-        }
-    }
-
     class MainViewModel : BaseViewModel
     {
         public MainViewModel()
